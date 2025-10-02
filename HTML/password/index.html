@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>小游戏：密码破译</title>
+        <link rel="stylesheet" href="./css/style.css" />
+        <script src="./javascript/main.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>密码破译</h1>
+            <div class="card">
+                <button type="button" class="btn btn-success"
+                    id="start" onclick="init();">开始游戏</button>
+            </div>
+            <div class="card" id="game" style="display: none;">
+                <h2>破译工作台</h2>
+                <div>
+                    <p>剩余校验次数：<strong id="count"></strong>次</p>
+                </div>
+                <div>
+                    <h3>密码输入区</h3>
+                    <input type="text" placeholder="请输入密码" id="answer" style="width: 80%;" />
+                    <button type="button" class="btn" id="submit" onclick="check();">尝试破译</button>
+                </div>
+                <br />
+                <div>
+                    <h3>破译日志</h3>
+                    <p id="log"></p>
+                </div>
+            </div>
+        </div>
+
+
+        <dialog id="game-rule">
+            <div class="dialog-header">
+                <h3>游戏规则</h3>
+                <button type="button" class="dialog-close-button" aria-label="关闭"
+                    onclick="document.getElementById('game-rule').close();">&times;</button>
+            </div>
+            <div class="dialog-body">
+                <p><strong>请仔细阅读，谢谢！</strong></p>
+                <p>
+                    小K是A国军队的密码学专家。今天他意外发现了B国指挥部和前线的战术通讯。但是小K经过研究，发现密文采用了一种特殊的防御算法。 <br /> <br />
+                    密钥共由<strong>4位</strong>不同的数字组成（<strong>每位0~9</strong>），向算法尝试校验密钥时，若密钥正确，则返回“校验成功”，否则会返回两个数据：猜测中的<strong>数字在密钥中且位置正确</strong>上的数字数量，和<strong>数字在密钥中但位置不正确</strong>的数字数量。 <br /> <br />
+                    小K在分析算法样本时发现：防御算法最多只能尝试<strong>10次</strong>密钥校验，若超过10次，会<strong>显示密钥并使其失效。</strong> <br /> <br />
+                    但是小K非常忙，还有其他重要任务要做，所以他请求算法思维优秀的你帮助他破译密码。 <br />
+                    请帮助小K破译出尽可能多的内容吧！ <br /> <br />
+                    请在关闭窗口后再点击一次“开始游戏”按钮，开始破译工作。
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn"
+                    onclick="document.getElementById('game-rule').close();">确认</button>
+            </div>
+        </dialog>
+
+        <dialog id="0-count">
+            <div class="dialog-header">
+                <h3 style="color: red;">错误</h3>
+                <button type="button" class="dialog-close-button" aria-label="关闭"
+                    onclick="document.getElementById('0-count').close();">&times;</button>
+            </div>
+            <div class="dialog-body">
+                <p>
+                    <strong>您的校验次数已耗尽！</strong> <br />
+                    若想重新开始，请关闭对话框并在顶部选择“重新开始”。
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn btn-danger"
+                    onclick="document.getElementById('0-count').close();">确认</button>
+            </div>
+        </dialog>
+
+        <dialog id="show-ans">
+            <div class="dialog-header">
+                <h3>次数已耗尽</h3>
+                <button type="button" class="dialog-close-button" aria-label="关闭"
+                    onclick="document.getElementById('show-ans').close();">&times;</button>
+            </div>
+            <div class="dialog-body">
+                <p>
+                    <strong>您的校验次数已耗尽！</strong> <br />
+                    正确答案是：<strong id="ans-show"></strong> <br />
+                    若想重新开始，请关闭对话框并在顶部选择“重新开始”。
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn btn-danger"
+                    onclick="document.getElementById('show-ans').close();">确认</button>
+            </div>
+        </dialog>
+
+        <dialog id="had-completed">
+            <div class="dialog-header">
+                <h3 style="color: green;">您已答对</h3>
+                <button type="button" class="dialog-close-button" aria-label="关闭"
+                    onclick="document.getElementById('had-completed').close();">&times;</button>
+            </div>
+            <div class="dialog-body">
+                <p>
+                    <strong>您已答对！</strong> <br />
+                    若想重新开始，请关闭对话框并在顶部选择“重新开始”。
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn btn-success"
+                    onclick="document.getElementById('had-completed').close();">确认</button>
+            </div>
+        </dialog>
+
+        <dialog id="error">
+            <div class="dialog-header">
+                <h3 style="color: red;">错误</h3>
+                <button type="button" class="dialog-close-button" aria-label="关闭"
+                    onclick="document.getElementById('error').close();">&times;</button>
+            </div>
+            <div class="dialog-body">
+                <p>
+                    <strong>您输入的密码格式不正确。</strong> <br />
+                    正确格式：四位数字、不含零、无重复数字 <br />
+                    本次猜测不计入次数
+                </p>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn btn-danger"
+                    onclick="document.getElementById('error').close();">确认</button>
+            </div>
+        </dialog>
+
+        <dialog id="wrong">
+            <div class="dialog-header">
+                <h3>回答错误</h3>
+                <button type="button" class="dialog-close-button" aria-label="关闭"
+                    onclick="document.getElementById('wrong').close();">&times;</button>
+            </div>
+            <div class="dialog-body">
+                <p id="wrong-msg"></p>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn"
+                    onclick="document.getElementById('wrong').close();">确认</button>
+            </div>
+        </dialog>
+
+        <dialog id="right">
+            <div class="dialog-header">
+                <h3 style="color: green;">回答正确！</h3>
+                <button type="button" class="dialog-close-button" aria-label="关闭"
+                    onclick="document.getElementById('right').close();">&times;</button>
+            </div>
+            <div class="dialog-body">
+                <p id="right-msg"></p>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" class="btn btn-success"
+                    onclick="document.getElementById('right').close();">确认</button>
+            </div>
+        </dialog>
+    </body>
+</html>
